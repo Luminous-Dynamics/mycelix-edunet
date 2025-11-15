@@ -4,16 +4,18 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Federated Learning zome for EduNet"
+description = "Federated Learning zome for EduNet (library-only for v0.1)"
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["rlib"]
 
 [dependencies]
-hdk.workspace = true
-hdi.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 edunet-core = { path = "../../crates/edunet-core" }
 edunet-agg = { path = "../../crates/edunet-agg" }
+
+# NOTE: HDK dependencies will be added when implementing actual zome functions
+# hdk.workspace = true
+# hdi.workspace = true
