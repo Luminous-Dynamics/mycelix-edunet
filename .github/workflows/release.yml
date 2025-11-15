@@ -65,7 +65,7 @@ jobs:
           cp target/release/libedunet_agg.* artifacts/ || true
 
       - name: Upload Rust artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: rust-artifacts
           path: artifacts/
@@ -96,7 +96,7 @@ jobs:
         run: tar -czf ../../edunet-web-${{ needs.create-release.outputs.version }}.tar.gz dist/
 
       - name: Upload web artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: web-artifacts
           path: edunet-web-*.tar.gz
