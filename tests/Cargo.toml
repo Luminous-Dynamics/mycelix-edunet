@@ -1,0 +1,26 @@
+[package]
+name = "edunet-tests"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+edunet-core = { path = "../crates/edunet-core" }
+edunet-agg = { path = "../crates/edunet-agg" }
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# Utilities
+chrono.workspace = true
+
+# Random generation
+rand.workspace = true
+rand_chacha.workspace = true
+rand_distr.workspace = true
+
+[lib]
+name = "fixtures"
+path = "fixtures/mod.rs"

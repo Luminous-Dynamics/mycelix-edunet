@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help dev test build clean web rust zomes fmt lint
+.PHONY: help dev test build clean web rust zomes fmt lint bench check
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -39,6 +39,16 @@ test: ## Run all tests
 	cargo test --all
 	@echo "▶ Running web tests..."
 	cd apps/web && npm test -- --watch=false || true
+
+bench: ## Run benchmarks
+	@echo "▶ Running benchmarks..."
+	cargo bench --workspace
+
+check: ## Quick sanity check (fmt + clippy + test)
+	@echo "▶ Running quick sanity check..."
+	cargo fmt --all -- --check
+	cargo clippy --all -- -D warnings
+	cargo test --all --quiet
 
 start: ## Start development servers
 	./scripts/dev.sh

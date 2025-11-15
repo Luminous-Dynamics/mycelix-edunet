@@ -1,0 +1,345 @@
+/**
+ * FLRoundsPage Component
+ *
+ * Main page for viewing and participating in Federated Learning rounds
+ */
+
+import React, { useState, useMemo } from 'react';
+import { RoundCard } from '../components/RoundCard';
+import { RoundTimeline } from '../components/RoundTimeline';
+import { mockFlRounds, FlRound, getActiveRounds, getCompletedRounds } from '../data/mockRounds';
+
+type FilterTab = 'all' | 'active' | 'completed';
+
+export const FLRoundsPage: React.FC = () => {
+  const [selectedTab, setSelectedTab] = useState<FilterTab>('all');
+  const [selectedRound, setSelectedRound] = useState<FlRound | null>(null);
+
+  const filteredRounds = useMemo(() => {
+    switch (selectedTab) {
+      case 'active':
+        return getActiveRounds();
+      case 'completed':
+        return getCompletedRounds();
+      default:
+        return mockFlRounds;
+    }
+  }, [selectedTab]);
+
+  const activeCount = getActiveRounds().length;
+  const completedCount = getCompletedRounds().length;
+
+  const handleRoundClick = (round: FlRound) => {
+    setSelectedRound(round);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedRound(null);
+  };
+
+  const handleJoinRound = (round: FlRound) => {
+    alert(`Joining round: ${round.round_id}\n\nThis will be implemented with real Holochain integration.`);
+  };
+
+  const TabButton: React.FC<{ tab: FilterTab; label: string; count?: number }> = ({
+    tab,
+    label,
+    count,
+  }) => {
+    const isActive = selectedTab === tab;
+    return (
+      <button
+        onClick={() => setSelectedTab(tab)}
+        style={{
+          padding: '10px 20px',
+          fontSize: '14px',
+          fontWeight: '500',
+          color: isActive ? '#3b82f6' : '#6b7280',
+          backgroundColor: isActive ? '#eff6ff' : 'transparent',
+          border: 'none',
+          borderBottom: isActive ? '2px solid #3b82f6' : '2px solid transparent',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.color = '#3b82f6';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.color = '#6b7280';
+          }
+        }}
+      >
+        {label}
+        {count !== undefined && (
+          <span
+            style={{
+              marginLeft: '6px',
+              padding: '2px 8px',
+              fontSize: '12px',
+              borderRadius: '10px',
+              backgroundColor: isActive ? '#3b82f6' : '#e5e7eb',
+              color: isActive ? '#ffffff' : '#6b7280',
+            }}
+          >
+            {count}
+          </span>
+        )}
+      </button>
+    );
+  };
+
+  return (
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '32px' }}>
+        <h1 style={{ margin: 0, fontSize: '32px', fontWeight: '700', color: '#111827' }}>
+          Federated Learning Rounds
+        </h1>
+        <p style={{ margin: '8px 0 0 0', fontSize: '16px', color: '#6b7280' }}>
+          Participate in privacy-preserving collaborative model training
+        </p>
+      </div>
+
+      {/* Tabs */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '8px',
+          borderBottom: '1px solid #e5e7eb',
+          marginBottom: '24px',
+        }}
+      >
+        <TabButton tab="all" label="All Rounds" count={mockFlRounds.length} />
+        <TabButton tab="active" label="Active" count={activeCount} />
+        <TabButton tab="completed" label="Completed" count={completedCount} />
+      </div>
+
+      {/* Rounds Grid */}
+      {filteredRounds.length > 0 ? (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+            gap: '20px',
+          }}
+        >
+          {filteredRounds.map((round) => (
+            <RoundCard key={round.round_id} round={round} onClick={handleRoundClick} />
+          ))}
+        </div>
+      ) : (
+        <div
+          style={{
+            padding: '64px 24px',
+            textAlign: 'center',
+            backgroundColor: '#f9fafb',
+            borderRadius: '8px',
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '16px', color: '#6b7280' }}>
+            No {selectedTab} rounds found
+          </p>
+        </div>
+      )}
+
+      {/* Round Detail Modal */}
+      {selectedRound && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '24px',
+          }}
+          onClick={handleCloseModal}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              maxWidth: '800px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              padding: '32px',
+              position: 'relative',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={handleCloseModal}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                border: '1px solid #d1d5db',
+                backgroundColor: '#ffffff',
+                cursor: 'pointer',
+                fontSize: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              ×
+            </button>
+
+            {/* Round Details */}
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700' }}>
+              {selectedRound.round_id}
+            </h2>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280' }}>
+              Model: {selectedRound.model_id}
+            </p>
+
+            {/* Timeline */}
+            <RoundTimeline currentState={selectedRound.state} />
+
+            {/* Stats Grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '16px',
+                marginTop: '32px',
+                marginBottom: '24px',
+              }}
+            >
+              <div
+                style={{
+                  padding: '16px',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '8px',
+                }}
+              >
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+                  Participants
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: '#111827' }}>
+                  {selectedRound.current_participants}
+                  <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: '400' }}>
+                    {' '}
+                    / {selectedRound.max_participants}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: '16px',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '8px',
+                }}
+              >
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+                  Aggregation Method
+                </div>
+                <div style={{ fontSize: '18px', fontWeight: '600', color: '#111827' }}>
+                  {selectedRound.aggregation_method}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: '16px',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '8px',
+                }}
+              >
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+                  Clip Norm
+                </div>
+                <div style={{ fontSize: '18px', fontWeight: '600', color: '#111827' }}>
+                  {selectedRound.clip_norm}
+                </div>
+              </div>
+            </div>
+
+            {/* Privacy Params */}
+            {selectedRound.privacy_params.epsilon && (
+              <div
+                style={{
+                  padding: '16px',
+                  backgroundColor: '#ecfdf5',
+                  border: '1px solid #10b981',
+                  borderRadius: '8px',
+                  marginBottom: '24px',
+                }}
+              >
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#059669', marginBottom: '8px' }}>
+                  🛡️ Differential Privacy Enabled
+                </div>
+                <div style={{ fontSize: '13px', color: '#047857' }}>
+                  ε = {selectedRound.privacy_params.epsilon}, δ ={' '}
+                  {selectedRound.privacy_params.delta}
+                </div>
+              </div>
+            )}
+
+            {/* Provenance */}
+            {selectedRound.provenance && (
+              <div
+                style={{
+                  padding: '16px',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '8px',
+                  marginBottom: '24px',
+                }}
+              >
+                <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
+                  Round Provenance
+                </div>
+                <div style={{ fontSize: '13px', color: '#4b5563', lineHeight: '1.6' }}>
+                  <div>Contributors: {selectedRound.provenance.contributor_count}</div>
+                  <div>Median Val Loss: {selectedRound.provenance.update_quality_metrics.median_val_loss}</div>
+                  <div>Mean Clipped Norm: {selectedRound.provenance.update_quality_metrics.mean_clipped_norm}</div>
+                  <div>Outliers Trimmed: {selectedRound.provenance.update_quality_metrics.outliers_trimmed}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Join Button */}
+            {selectedRound.state === 'JOIN' && (
+              <button
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: '#ffffff',
+                  backgroundColor: '#3b82f6',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2563eb';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3b82f6';
+                }}
+                onClick={() => handleJoinRound(selectedRound)}
+              >
+                Join this Round
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
