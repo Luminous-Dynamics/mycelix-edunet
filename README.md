@@ -4,7 +4,14 @@
 
 [![CI](https://github.com/Luminous-Dynamics/mycelix-edunet/actions/workflows/ci.yml/badge.svg)](https://github.com/Luminous-Dynamics/mycelix-edunet/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Rust Version](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org)
 [![Holochain](https://img.shields.io/badge/Holochain-agent--centric-purple)](https://holochain.org)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Roadmap](https://img.shields.io/badge/roadmap-public-blue)](ROADMAP.md)
+[![Discord](https://img.shields.io/badge/chat-Discord-7289da)](https://discord.gg/mycelix)
+[![Twitter](https://img.shields.io/twitter/follow/mycelix?style=social)](https://twitter.com/mycelix)
+
+> ⭐ **Star us on GitHub!** — it helps the project grow and reach more contributors
 
 ---
 
