@@ -1,0 +1,19 @@
+[package]
+name = "dao_zome"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "DAO governance zome for EduNet"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+hdk.workspace = true
+hdi.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+chrono.workspace = true
+edunet-core = { path = "../../crates/edunet-core" }

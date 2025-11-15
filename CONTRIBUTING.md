@@ -1,0 +1,267 @@
+# Contributing to Mycelix EduNet
+
+Thank you for your interest in contributing to Mycelix EduNet! This document provides guidelines and instructions for contributing.
+
+## Table of Contents
+
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+- [Development Workflow](#development-workflow)
+- [Branch Strategy](#branch-strategy)
+- [Commit Convention](#commit-convention)
+- [Pull Request Process](#pull-request-process)
+- [Code Style](#code-style)
+- [Testing](#testing)
+- [Documentation](#documentation)
+- [Security](#security)
+
+## Code of Conduct
+
+This project and everyone participating in it is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+
+## Getting Started
+
+### Prerequisites
+
+- **Rust** (latest stable): Install via [rustup](https://rustup.rs/)
+- **Node.js** (>= 18): Install via [nvm](https://github.com/nvm-sh/nvm) or [official installer](https://nodejs.org/)
+- **Holochain dev tools**: Follow [Holochain installation guide](https://developer.holochain.org/install/)
+- **pnpm** or **npm**: Package manager for Node.js
+
+### Local Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/Luminous-Dynamics/mycelix-edunet.git
+cd mycelix-edunet
+
+# Install dependencies and build
+make build
+
+# Run development environment
+make dev
+
+# Run tests
+make test
+```
+
+## Development Workflow
+
+1. **Find or create an issue** describing the work
+2. **Fork the repository** (external contributors)
+3. **Create a feature branch** from `dev`
+4. **Make your changes** with clear, atomic commits
+5. **Add tests** for new functionality
+6. **Update documentation** as needed
+7. **Run tests and linters** locally
+8. **Push your branch** and create a pull request
+9. **Address review feedback**
+10. **Celebrate** when merged!
+
+## Branch Strategy
+
+- **`main`** — Stable, production-ready code
+- **`dev`** — Integration branch for next release
+- **`feat/*`** — New features (e.g., `feat/fl-aggregation`)
+- **`fix/*`** — Bug fixes (e.g., `fix/zome-validation`)
+- **`docs/*`** — Documentation updates
+- **`chore/*`** — Maintenance tasks (e.g., `chore/deps-update`)
+- **`refactor/*`** — Code refactoring without functional changes
+
+**Branch from `dev`**, not `main`, unless it's a hotfix.
+
+## Commit Convention
+
+We use [Conventional Commits](https://www.conventionalcommits.org/) for clear, structured commit messages:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+### Types
+
+- **feat**: New feature
+- **fix**: Bug fix
+- **docs**: Documentation only
+- **style**: Code style/formatting (no logic change)
+- **refactor**: Code restructuring without feature/fix
+- **perf**: Performance improvement
+- **test**: Adding or updating tests
+- **chore**: Maintenance tasks, deps, tooling
+- **security**: Security-related changes
+
+### Scope
+
+Optional. Examples: `zome/fl`, `web/ui`, `core`, `agg`, `protocol`, `ci`
+
+### Examples
+
+```
+feat(zome/fl): add trimmed mean aggregation
+
+Implements robust aggregation using trimmed mean to mitigate
+poisoning attacks. Adds validation for gradient norms.
+
+Closes #42
+```
+
+```
+fix(web): correct round state display logic
+
+Round status was showing incorrect phase due to missing
+case for AGGREGATE state.
+
+Fixes #87
+```
+
+## Pull Request Process
+
+### Before Opening a PR
+
+- [ ] Code builds without errors (`make build`)
+- [ ] All tests pass (`make test`)
+- [ ] Code is formatted (`make fmt`)
+- [ ] Linters pass (`make lint`)
+- [ ] Documentation updated (if needed)
+- [ ] Changelog updated (for significant changes)
+
+### PR Checklist
+
+When you open a PR, ensure:
+
+- [ ] **Title** follows conventional commit format
+- [ ] **Description** clearly explains what and why
+- [ ] **Tests** added or updated for new functionality
+- [ ] **Docs** updated (protocol, threat model, API docs)
+- [ ] **Security impact** noted if applicable
+- [ ] **Breaking changes** clearly marked and justified
+- [ ] **Schema version** bumped if entry definitions changed
+- [ ] **Issue linked** (e.g., "Closes #123")
+
+### Review Process
+
+- At least **1 approval** required from maintainers
+- All **CI checks** must pass
+- **Address feedback** promptly and professionally
+- Use **"Request re-review"** after making changes
+
+## Code Style
+
+### Rust
+
+- **Format**: `cargo fmt --all`
+- **Lint**: `cargo clippy --all -- -D warnings`
+- Follow [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
+- Document public APIs with `///` doc comments
+- Prefer `Result<T, E>` over panics
+
+### JavaScript/TypeScript
+
+- **Format**: `prettier` (auto-configured)
+- **Lint**: `eslint` (auto-configured)
+- Use TypeScript strict mode
+- Document complex functions with JSDoc
+
+### General
+
+- **Line length**: 100 characters (soft limit)
+- **Indentation**: See `.editorconfig`
+- **Comments**: Explain *why*, not *what*
+- **TODOs**: Include issue number or rationale
+
+## Testing
+
+### Rust
+
+```bash
+# Run all Rust tests
+cargo test --all
+
+# Run specific crate tests
+cargo test -p edunet-core
+
+# Run with output
+cargo test -- --nocapture
+```
+
+### Web
+
+```bash
+cd apps/web
+
+# Run tests
+npm test
+
+# Run with coverage
+npm test -- --coverage
+
+# Run in watch mode
+npm test -- --watch
+```
+
+### Integration Tests
+
+```bash
+# Run full integration suite (when available)
+make test-integration
+```
+
+## Documentation
+
+### What to Document
+
+- **Public APIs**: All public functions, structs, enums
+- **Protocol changes**: Update `docs/protocol.md`
+- **Security implications**: Update `docs/threat-model.md`
+- **Governance decisions**: Create ADR in `docs/adr/`
+- **Breaking changes**: Note in PR and CHANGELOG
+
+### Documentation Standards
+
+- Use **Markdown** for all docs
+- Include **code examples** where helpful
+- Keep **diagrams** in source format (`.drawio`, `.mermaid`)
+- Link to **related issues** and ADRs
+- Update **README** for major features
+
+## Security
+
+### Reporting Vulnerabilities
+
+**Do NOT** open public issues for security vulnerabilities. Instead:
+
+1. Email **security@mycelix.org**
+2. Or use **GitHub Security Advisories**
+3. Include detailed description and reproduction steps
+4. Allow 90 days for embargo before public disclosure
+
+See [SECURITY.md](SECURITY.md) for full policy.
+
+### Security Considerations
+
+When contributing, consider:
+
+- **Input validation**: Validate all external inputs
+- **Cryptographic operations**: Use reviewed libraries
+- **Privacy**: Minimize data exposure
+- **Threat model impact**: Note in PR if your change affects threat surface
+- **Dependencies**: Audit new dependencies
+
+## Questions?
+
+- **General questions**: Open a [Discussion](https://github.com/Luminous-Dynamics/mycelix-edunet/discussions)
+- **Bug reports**: Open an [Issue](https://github.com/Luminous-Dynamics/mycelix-edunet/issues)
+- **Feature requests**: Open an [Issue](https://github.com/Luminous-Dynamics/mycelix-edunet/issues) with `type: feature` label
+- **Real-time chat**: Join our community (link TBD)
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the same license as the project (Apache-2.0). See [LICENSE](LICENSE) for details.
+
+---
+
+Thank you for contributing to a more equitable, privacy-preserving education platform!
