@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link, NavLink } from 'react-router-dom';
 import './App.css';
+import './styles/transitions.css';
 
-// Pages
-import { CoursesPage } from './pages/CoursesPage';
-import { FLRoundsPage } from './pages/FLRoundsPage';
-import { CredentialsPage } from './pages/CredentialsPage';
+// Lazy-loaded pages for code splitting
+const CoursesPage = lazy(() => import('./pages/CoursesPage').then(m => ({ default: m.CoursesPage })));
+const FLRoundsPage = lazy(() => import('./pages/FLRoundsPage').then(m => ({ default: m.FLRoundsPage })));
+const CredentialsPage = lazy(() => import('./pages/CredentialsPage').then(m => ({ default: m.CredentialsPage })));
 
 // Components
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { LoadingPage } from './components/LoadingSkeleton';
 
 // Services
 import { getMockClient } from './services/mockHolochainClient';
@@ -255,12 +257,14 @@ function App() {
         <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
           <NavBar />
 
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/courses" element={<CoursesPage />} />
-            <Route path="/rounds" element={<FLRoundsPage />} />
-            <Route path="/credentials" element={<CredentialsPage />} />
-          </Routes>
+          <Suspense fallback={<LoadingPage message="Loading..." />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/courses" element={<CoursesPage />} />
+              <Route path="/rounds" element={<FLRoundsPage />} />
+              <Route path="/credentials" element={<CredentialsPage />} />
+            </Routes>
+          </Suspense>
 
           <footer
             style={{
