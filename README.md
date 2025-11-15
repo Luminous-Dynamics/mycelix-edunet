@@ -1,17 +1,20 @@
-# Mycelix EduNet
+<div align="center">
+  <img src="assets/logo.svg" alt="EduNet Logo" width="200" height="200"/>
 
-**A decentralized education platform built on Holochain with Federated Learning for privacy-preserving personalization.**
+  # Mycelix EduNet
 
-[![CI](https://github.com/Luminous-Dynamics/mycelix-edunet/actions/workflows/ci.yml/badge.svg)](https://github.com/Luminous-Dynamics/mycelix-edunet/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Rust Version](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org)
-[![Holochain](https://img.shields.io/badge/Holochain-agent--centric-purple)](https://holochain.org)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Roadmap](https://img.shields.io/badge/roadmap-public-blue)](ROADMAP.md)
-[![Discord](https://img.shields.io/badge/chat-Discord-7289da)](https://discord.gg/mycelix)
-[![Twitter](https://img.shields.io/twitter/follow/mycelix?style=social)](https://twitter.com/mycelix)
+  **Privacy-preserving decentralized education powered by Holochain and Federated Learning**
 
-> ⭐ **Star us on GitHub!** — it helps the project grow and reach more contributors
+  [![CI](https://github.com/Luminous-Dynamics/mycelix-edunet/actions/workflows/ci.yml/badge.svg)](https://github.com/Luminous-Dynamics/mycelix-edunet/actions/workflows/ci.yml)
+  [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+  [![Rust Version](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org)
+  [![Holochain](https://img.shields.io/badge/Holochain-agent--centric-purple)](https://holochain.org)
+  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+  > ⭐ **Star us on GitHub** — it helps the project grow!
+
+  [Quick Start](#quick-start) · [Documentation](#documentation) · [Contributing](#contributing) · [Roadmap](ROADMAP.md)
+</div>
 
 ---
 
@@ -44,14 +47,9 @@ EduNet reimagines online learning by putting **learners in control** of their da
 
 ## Quick Start
 
-### Prerequisites
+Get started in under 10 minutes! Follow our **[📖 Quick Start Tutorial](docs/tutorials/quick-start.md)** for a step-by-step guide.
 
-- **Rust** (latest stable): [Install via rustup](https://rustup.rs/)
-- **Node.js** (>= 18): [Install via nvm](https://github.com/nvm-sh/nvm) or [official installer](https://nodejs.org/)
-- **Holochain dev tools**: [Follow installation guide](https://developer.holochain.org/install/) (optional for v0.1)
-- **pnpm** or **npm**: Package manager for Node.js
-
-### Installation
+### TL;DR
 
 ```bash
 # Clone the repository
@@ -61,17 +59,25 @@ cd mycelix-edunet
 # Build all components
 make build
 
-# Run development environment
-make dev
+# Run tests (49 tests should pass)
+make test
+
+# Start web app
+cd apps/web && npm run dev
 ```
 
-The web app will be available at **http://localhost:3000**.
+**Web app**: http://localhost:5173
 
-### Run Tests
+### Docker
 
 ```bash
-make test
+# Quick start with Docker
+docker-compose up --build
+
+# App at http://localhost:3000
 ```
+
+**See also**: [Deployment Guide](docs/deployment.md) for production setups
 
 ---
 
@@ -145,6 +151,8 @@ See [`docs/adr/`](docs/adr/) for all ADRs.
 make dev         # Build and start dev environment
 make build       # Build Rust workspace + web app
 make test        # Run all tests (Rust + web)
+make check       # Quick sanity check (fmt + clippy + test)
+make bench       # Run performance benchmarks
 make fmt         # Format all code
 make lint        # Run linters
 make clean       # Clean build artifacts
