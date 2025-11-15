@@ -47,6 +47,69 @@ make test
 
 ## Development Workflow
 
+```
+┌──────────────┐
+│ 1. Find/Create│
+│     Issue     │
+└───────┬───────┘
+        │
+        ▼
+┌──────────────┐
+│ 2. Fork Repo │
+│ (if external)│
+└───────┬───────┘
+        │
+        ▼
+┌──────────────┐
+│ 3. Create    │
+│ Feature Branch│ (from dev)
+└───────┬───────┘
+        │
+        ▼
+┌──────────────┐
+│ 4. Make      │
+│  Changes     │ (atomic commits)
+└───────┬───────┘
+        │
+        ▼
+┌──────────────┐
+│ 5. Add Tests │
+└───────┬───────┘
+        │
+        ▼
+┌──────────────┐
+│ 6. Update    │
+│     Docs     │
+└───────┬───────┘
+        │
+        ▼
+┌──────────────┐
+│ 7. Run Tests │
+│  & Linters   │
+└───────┬───────┘
+        │
+        ▼
+┌──────────────┐
+│ 8. Push &    │
+│ Create PR    │
+└───────┬───────┘
+        │
+        ▼
+┌──────────────┐
+│ 9. Address   │
+│  Feedback    │ ◄─┐
+└───────┬───────┘   │
+        │           │
+        ├───────────┘
+        ▼
+┌──────────────┐
+│10. Merged!   │
+│   Celebrate! │
+└──────────────┘
+```
+
+### Step-by-Step
+
 1. **Find or create an issue** describing the work
 2. **Fork the repository** (external contributors)
 3. **Create a feature branch** from `dev`
@@ -148,6 +211,48 @@ When you open a PR, ensure:
 - All **CI checks** must pass
 - **Address feedback** promptly and professionally
 - Use **"Request re-review"** after making changes
+
+### Code Review Checklist
+
+**For Reviewers**:
+
+#### Functionality
+- [ ] Code does what the PR claims
+- [ ] Edge cases are handled
+- [ ] Error handling is appropriate
+- [ ] No obvious bugs or logic errors
+
+#### Code Quality
+- [ ] Code is readable and maintainable
+- [ ] No unnecessary complexity
+- [ ] Follows project conventions
+- [ ] Good naming (variables, functions, types)
+- [ ] Adequate comments for complex logic
+
+#### Tests
+- [ ] Tests cover new functionality
+- [ ] Tests cover edge cases
+- [ ] Tests are clear and maintainable
+- [ ] All tests passing
+
+#### Security
+- [ ] No hardcoded credentials
+- [ ] Input validation present
+- [ ] No SQL injection / command injection risks
+- [ ] Crypto operations use safe libraries
+- [ ] Privacy implications considered
+
+#### Performance
+- [ ] No obvious performance issues
+- [ ] Algorithms are efficient
+- [ ] No memory leaks
+- [ ] Database queries optimized (if applicable)
+
+#### Documentation
+- [ ] Public APIs documented
+- [ ] Complex logic explained
+- [ ] README updated (if needed)
+- [ ] Breaking changes noted
 
 ## Code Style
 
