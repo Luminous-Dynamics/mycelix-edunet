@@ -6,6 +6,7 @@
   **Privacy-preserving decentralized education powered by Holochain and Federated Learning**
 
   [![CI](https://github.com/Luminous-Dynamics/mycelix-edunet/actions/workflows/ci.yml/badge.svg)](https://github.com/Luminous-Dynamics/mycelix-edunet/actions/workflows/ci.yml)
+  [![codecov](https://codecov.io/gh/Luminous-Dynamics/mycelix-edunet/branch/main/graph/badge.svg)](https://codecov.io/gh/Luminous-Dynamics/mycelix-edunet)
   [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
   [![Rust Version](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org)
   [![Holochain](https://img.shields.io/badge/Holochain-agent--centric-purple)](https://holochain.org)
