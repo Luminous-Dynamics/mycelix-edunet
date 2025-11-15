@@ -4,30 +4,64 @@
  * Main page for viewing and participating in Federated Learning rounds
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { RoundCard } from '../components/RoundCard';
 import { RoundTimeline } from '../components/RoundTimeline';
-import { mockFlRounds, FlRound, getActiveRounds, getCompletedRounds } from '../data/mockRounds';
+import { LoadingCard } from '../components/LoadingSkeleton';
+import { ErrorState } from '../components/ErrorState';
+import { mockFlRounds, FlRound } from '../data/mockRounds';
 
 type FilterTab = 'all' | 'active' | 'completed';
 
 export const FLRoundsPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<FilterTab>('all');
   const [selectedRound, setSelectedRound] = useState<FlRound | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [rounds, setRounds] = useState<FlRound[]>([]);
+
+  // Simulate data fetching
+  useEffect(() => {
+    const fetchRounds = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 600));
+
+        // Simulate occasional error (5% chance)
+        if (Math.random() < 0.05) {
+          throw new Error('Failed to load FL rounds');
+        }
+
+        setRounds(mockFlRounds);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRounds();
+  }, []);
 
   const filteredRounds = useMemo(() => {
+    const activeStates = ['JOIN', 'ASSIGN', 'UPDATE', 'AGGREGATE'];
     switch (selectedTab) {
       case 'active':
-        return getActiveRounds();
+        return rounds.filter((r) => activeStates.includes(r.state));
       case 'completed':
-        return getCompletedRounds();
+        return rounds.filter((r) => r.state === 'COMPLETED');
       default:
-        return mockFlRounds;
+        return rounds;
     }
-  }, [selectedTab]);
+  }, [selectedTab, rounds]);
 
-  const activeCount = getActiveRounds().length;
-  const completedCount = getCompletedRounds().length;
+  const activeCount = rounds.filter((r) =>
+    ['JOIN', 'ASSIGN', 'UPDATE', 'AGGREGATE'].includes(r.state)
+  ).length;
+  const completedCount = rounds.filter((r) => r.state === 'COMPLETED').length;
 
   const handleRoundClick = (round: FlRound) => {
     setSelectedRound(round);
@@ -91,6 +125,56 @@ export const FLRoundsPage: React.FC = () => {
     );
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ margin: 0, fontSize: '32px', fontWeight: '700', color: '#111827' }}>
+            Federated Learning Rounds
+          </h1>
+          <p style={{ margin: '8px 0 0 0', fontSize: '16px', color: '#6b7280' }}>
+            Loading FL rounds...
+          </p>
+        </div>
+
+        {/* Loading skeleton grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+            gap: '20px',
+          }}
+        >
+          {[1, 2, 3, 4].map((i) => (
+            <LoadingCard key={i} height="200px" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ margin: 0, fontSize: '32px', fontWeight: '700', color: '#111827' }}>
+            Federated Learning Rounds
+          </h1>
+        </div>
+
+        <ErrorState
+          title="Failed to Load FL Rounds"
+          message={error}
+          onRetry={() => window.location.reload()}
+        />
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
       {/* Header */}
@@ -112,7 +196,7 @@ export const FLRoundsPage: React.FC = () => {
           marginBottom: '24px',
         }}
       >
-        <TabButton tab="all" label="All Rounds" count={mockFlRounds.length} />
+        <TabButton tab="all" label="All Rounds" count={rounds.length} />
         <TabButton tab="active" label="Active" count={activeCount} />
         <TabButton tab="completed" label="Completed" count={completedCount} />
       </div>

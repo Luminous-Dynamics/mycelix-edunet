@@ -4,8 +4,10 @@
  * Display user's verifiable credentials with verification and sharing options
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CredentialCard } from '../components/CredentialCard';
+import { LoadingCard } from '../components/LoadingSkeleton';
+import { ErrorState } from '../components/ErrorState';
 import { mockCredentials, VerifiableCredential, verifyCredential } from '../data/mockCredentials';
 
 export const CredentialsPage: React.FC = () => {
@@ -14,6 +16,35 @@ export const CredentialsPage: React.FC = () => {
     valid: boolean;
     reason?: string;
   } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [credentials, setCredentials] = useState<VerifiableCredential[]>([]);
+
+  // Simulate data fetching
+  useEffect(() => {
+    const fetchCredentials = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Simulate occasional error (5% chance)
+        if (Math.random() < 0.05) {
+          throw new Error('Failed to load credentials');
+        }
+
+        setCredentials(mockCredentials);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCredentials();
+  }, []);
 
   const handleCredentialClick = (credential: VerifiableCredential) => {
     setSelectedCredential(credential);
@@ -56,6 +87,56 @@ export const CredentialsPage: React.FC = () => {
     }
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ margin: 0, fontSize: '32px', fontWeight: '700', color: '#111827' }}>
+            My Credentials
+          </h1>
+          <p style={{ margin: '8px 0 0 0', fontSize: '16px', color: '#6b7280' }}>
+            Loading your credentials...
+          </p>
+        </div>
+
+        {/* Loading skeleton grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gap: '20px',
+          }}
+        >
+          {[1, 2, 3].map((i) => (
+            <LoadingCard key={i} height="180px" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ margin: 0, fontSize: '32px', fontWeight: '700', color: '#111827' }}>
+            My Credentials
+          </h1>
+        </div>
+
+        <ErrorState
+          title="Failed to Load Credentials"
+          message={error}
+          onRetry={() => window.location.reload()}
+        />
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
       {/* Header */}
@@ -89,7 +170,7 @@ export const CredentialsPage: React.FC = () => {
             Total Credentials
           </div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: '#1e3a8a' }}>
-            {mockCredentials.length}
+            {credentials.length}
           </div>
         </div>
 
@@ -105,7 +186,7 @@ export const CredentialsPage: React.FC = () => {
             Verified
           </div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: '#065f46' }}>
-            {mockCredentials.filter((c) => c.proof).length}
+            {credentials.filter((c) => c.proof).length}
           </div>
         </div>
 
@@ -121,7 +202,7 @@ export const CredentialsPage: React.FC = () => {
             FL Contributions
           </div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: '#78350f' }}>
-            {mockCredentials.reduce(
+            {credentials.reduce(
               (sum, c) => sum + (c.credentialSubject.flContributions || 0),
               0
             )}
@@ -130,7 +211,7 @@ export const CredentialsPage: React.FC = () => {
       </div>
 
       {/* Credentials Grid */}
-      {mockCredentials.length > 0 ? (
+      {credentials.length > 0 ? (
         <div
           style={{
             display: 'grid',
@@ -138,7 +219,7 @@ export const CredentialsPage: React.FC = () => {
             gap: '20px',
           }}
         >
-          {mockCredentials.map((credential, index) => (
+          {credentials.map((credential, index) => (
             <CredentialCard
               key={index}
               credential={credential}

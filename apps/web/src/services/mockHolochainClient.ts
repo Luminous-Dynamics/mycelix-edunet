@@ -7,8 +7,8 @@
 
 // Import example data
 import courseExample1 from '../../../../examples/courses/spanish-beginner.json';
-import courseExample2 from '../../../../examples/courses/rust-fundamentals.json';
-import flRoundActive from '../../../../examples/fl-rounds/round-002-active.json';
+// import courseExample2 from '../../../../examples/courses/rust-fundamentals.json';
+// import flRoundActive from '../../../../examples/fl-rounds/round-002-active.json';
 import flRoundCompleted from '../../../../examples/fl-rounds/round-001-completed.json';
 import credentialExample from '../../../../examples/credentials/valid-achievement.json';
 
@@ -58,7 +58,7 @@ export class MockHolochainClient {
     // Load courses
     this.courses = [
       courseExample1,
-      courseExample2,
+      this.generateMockCourse('rust-fundamentals', 'Rust Fundamentals'),
       this.generateMockCourse('machine-learning-intro', 'Machine Learning Fundamentals'),
       this.generateMockCourse('web3-dev', 'Web3 Development Basics'),
       this.generateMockCourse('data-structures', 'Advanced Data Structures'),
@@ -68,7 +68,7 @@ export class MockHolochainClient {
     // Load FL rounds
     this.flRounds = [
       flRoundCompleted,
-      flRoundActive,
+      this.generateMockFlRound('fl-round-002', 'UPDATE', 8),
       this.generateMockFlRound('fl-round-003', 'DISCOVER', 0),
       this.generateMockFlRound('fl-round-004', 'JOIN', 5),
     ];

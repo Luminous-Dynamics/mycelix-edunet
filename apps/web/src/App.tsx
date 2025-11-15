@@ -7,6 +7,9 @@ import { CoursesPage } from './pages/CoursesPage';
 import { FLRoundsPage } from './pages/FLRoundsPage';
 import { CredentialsPage } from './pages/CredentialsPage';
 
+// Components
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 // Services
 import { getMockClient } from './services/mockHolochainClient';
 
@@ -247,51 +250,53 @@ function NavBar() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
-        <NavBar />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+          <NavBar />
 
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/courses" element={<CoursesPage />} />
-          <Route path="/rounds" element={<FLRoundsPage />} />
-          <Route path="/credentials" element={<CredentialsPage />} />
-        </Routes>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/courses" element={<CoursesPage />} />
+            <Route path="/rounds" element={<FLRoundsPage />} />
+            <Route path="/credentials" element={<CredentialsPage />} />
+          </Routes>
 
-        <footer
-          style={{
-            marginTop: '80px',
-            padding: '24px',
-            borderTop: '1px solid #e5e7eb',
-            textAlign: 'center',
-            color: '#6b7280',
-            fontSize: '14px',
-          }}
-        >
-          <p style={{ margin: '0 0 8px 0' }}>
-            Built with ❤️ by{' '}
-            <a
-              href="https://github.com/Luminous-Dynamics"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: '#3b82f6', textDecoration: 'none' }}
-            >
-              Luminous Dynamics
-            </a>
-          </p>
-          <p style={{ margin: 0 }}>
-            <a
-              href="https://github.com/Luminous-Dynamics/mycelix-edunet"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: '#3b82f6', textDecoration: 'none' }}
-            >
-              View on GitHub
-            </a>
-          </p>
-        </footer>
-      </div>
-    </BrowserRouter>
+          <footer
+            style={{
+              marginTop: '80px',
+              padding: '24px',
+              borderTop: '1px solid #e5e7eb',
+              textAlign: 'center',
+              color: '#6b7280',
+              fontSize: '14px',
+            }}
+          >
+            <p style={{ margin: '0 0 8px 0' }}>
+              Built with ❤️ by{' '}
+              <a
+                href="https://github.com/Luminous-Dynamics"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#3b82f6', textDecoration: 'none' }}
+              >
+                Luminous Dynamics
+              </a>
+            </p>
+            <p style={{ margin: 0 }}>
+              <a
+                href="https://github.com/Luminous-Dynamics/mycelix-edunet"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#3b82f6', textDecoration: 'none' }}
+              >
+                View on GitHub
+              </a>
+            </p>
+          </footer>
+        </div>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

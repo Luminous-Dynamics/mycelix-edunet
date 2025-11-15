@@ -50,7 +50,11 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
 /**
  * LoadingCard - Skeleton for card layouts
  */
-export const LoadingCard: React.FC = () => {
+interface LoadingCardProps {
+  height?: string;
+}
+
+export const LoadingCard: React.FC<LoadingCardProps> = ({ height }) => {
   return (
     <div
       style={{
@@ -58,6 +62,7 @@ export const LoadingCard: React.FC = () => {
         borderRadius: '8px',
         padding: '20px',
         backgroundColor: '#ffffff',
+        minHeight: height,
       }}
     >
       {/* Header */}

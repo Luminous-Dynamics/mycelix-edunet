@@ -238,7 +238,7 @@ export const mockCourses: Course[] = [
           title: 'Zero-Knowledge Proofs',
           duration_hours: 6,
         },
-      },
+      ],
       prerequisites: ['Mathematics', 'Computer Science Fundamentals'],
     },
     tags: ['cryptography', 'security', 'mathematics'],

@@ -4,9 +4,11 @@
  * Main page for course discovery with search, filters, and grid of course cards
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CourseCard } from '../components/CourseCard';
 import { CourseFilters, FilterState } from '../components/CourseFilters';
+import { LoadingCard } from '../components/LoadingSkeleton';
+import { ErrorState } from '../components/ErrorState';
 import { mockCourses, Course } from '../data/mockCourses';
 
 export const CoursesPage: React.FC = () => {
@@ -18,19 +20,48 @@ export const CoursesPage: React.FC = () => {
   });
 
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  // Simulate data fetching
+  useEffect(() => {
+    const fetchCourses = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // Simulate occasional error (10% chance)
+        if (Math.random() < 0.05) {
+          throw new Error('Failed to load courses');
+        }
+
+        setCourses(mockCourses);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   // Extract all unique tags from courses
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
-    mockCourses.forEach((course) => {
+    courses.forEach((course) => {
       course.tags.forEach((tag) => tagSet.add(tag));
     });
     return Array.from(tagSet).sort();
-  }, []);
+  }, [courses]);
 
   // Filter and sort courses
   const filteredCourses = useMemo(() => {
-    let result = [...mockCourses];
+    let result = [...courses];
 
     // Apply search query
     if (filters.searchQuery) {
@@ -85,6 +116,56 @@ export const CoursesPage: React.FC = () => {
     setSelectedCourse(null);
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ margin: 0, fontSize: '32px', fontWeight: '700', color: '#111827' }}>
+            Discover Courses
+          </h1>
+          <p style={{ margin: '8px 0 0 0', fontSize: '16px', color: '#6b7280' }}>
+            Loading courses...
+          </p>
+        </div>
+
+        {/* Loading skeleton grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: '20px',
+          }}
+        >
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <LoadingCard key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ margin: 0, fontSize: '32px', fontWeight: '700', color: '#111827' }}>
+            Discover Courses
+          </h1>
+        </div>
+
+        <ErrorState
+          title="Failed to Load Courses"
+          message={error}
+          onRetry={() => window.location.reload()}
+        />
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
       {/* Header */}
@@ -93,7 +174,7 @@ export const CoursesPage: React.FC = () => {
           Discover Courses
         </h1>
         <p style={{ margin: '8px 0 0 0', fontSize: '16px', color: '#6b7280' }}>
-          Browse {mockCourses.length} courses from expert instructors
+          Browse {courses.length} courses from expert instructors
         </p>
       </div>
 
@@ -102,7 +183,7 @@ export const CoursesPage: React.FC = () => {
 
       {/* Results Count */}
       <div style={{ marginBottom: '16px', fontSize: '14px', color: '#6b7280' }}>
-        {filteredCourses.length === mockCourses.length ? (
+        {filteredCourses.length === courses.length ? (
           <span>Showing all {filteredCourses.length} courses</span>
         ) : (
           <span>
