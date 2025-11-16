@@ -394,4 +394,195 @@ mod tests {
             Err(AggregationError::InsufficientUpdates { .. })
         ));
     }
+
+    // Edge case tests
+    #[test]
+    fn test_trimmed_mean_boundary_trim_percent() {
+        let updates = vec![
+            vec![1.0],
+            vec![2.0],
+            vec![3.0],
+            vec![4.0],
+            vec![5.0],
+        ];
+
+        // Trim 0% - should be same as mean
+        let config_zero = AggregationConfig {
+            trim_percent: 0.0,
+            min_updates: 1,
+        };
+        let result = trimmed_mean(&updates, &config_zero).unwrap();
+        assert_eq!(result[0], 3.0); // (1+2+3+4+5)/5
+
+        // Trim 40% - should trim 2 from each end, leaving middle value
+        let config_high = AggregationConfig {
+            trim_percent: 0.4,
+            min_updates: 1,
+        };
+        let result = trimmed_mean(&updates, &config_high).unwrap();
+        // Trims 2 from each end (40% of 5 = 2), leaving just the middle value: 3.0
+        assert_eq!(result[0], 3.0);
+    }
+
+    #[test]
+    fn test_median_odd_length() {
+        let updates = vec![vec![1.0], vec![2.0], vec![3.0]];
+
+        let result = median(&updates).unwrap();
+        assert_eq!(result[0], 2.0); // Middle value
+    }
+
+    #[test]
+    fn test_median_even_length() {
+        let updates = vec![vec![1.0], vec![2.0], vec![3.0], vec![4.0]];
+
+        let result = median(&updates).unwrap();
+        assert_eq!(result[0], 2.5); // Average of two middle values
+    }
+
+    #[test]
+    fn test_median_single_update() {
+        let updates = vec![vec![42.0, 100.0]];
+
+        let result = median(&updates).unwrap();
+        assert_eq!(result[0], 42.0);
+        assert_eq!(result[1], 100.0);
+    }
+
+    #[test]
+    fn test_weighted_mean_equal_weights() {
+        let updates = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
+        let weights = vec![1.0, 1.0];
+
+        let result = weighted_mean(&updates, &weights).unwrap();
+
+        // Equal weights = simple average
+        assert_eq!(result[0], 2.0);
+        assert_eq!(result[1], 3.0);
+    }
+
+    #[test]
+    fn test_weighted_mean_single_dominant_weight() {
+        let updates = vec![vec![1.0, 2.0], vec![100.0, 200.0]];
+        let weights = vec![0.001, 999.999]; // Second weight dominates
+
+        let result = weighted_mean(&updates, &weights).unwrap();
+
+        // Should be very close to second update
+        assert!((result[0] - 100.0).abs() < 0.1);
+        assert!((result[1] - 200.0).abs() < 0.1);
+    }
+
+    #[test]
+    fn test_clip_l2_norm_no_clipping() {
+        let mut vector = vec![0.3, 0.4]; // L2 norm = 0.5
+        let original = vector.clone();
+        clip_l2_norm(&mut vector, 1.0);
+
+        // Should not be modified if norm < max_norm
+        assert_eq!(vector, original);
+    }
+
+    #[test]
+    fn test_clip_l2_norm_zero_vector() {
+        let mut vector = vec![0.0, 0.0, 0.0];
+        clip_l2_norm(&mut vector, 1.0);
+
+        // Should remain zero
+        assert_eq!(vector, vec![0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn test_clip_l2_norm_large_vector() {
+        let mut vector = vec![10.0; 100]; // Large dimension
+        clip_l2_norm(&mut vector, 1.0);
+
+        let norm: f32 = vector.iter().map(|x| x * x).sum::<f32>().sqrt();
+        assert!((norm - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_empty_updates_error() {
+        let updates: Vec<Vec<f32>> = vec![];
+        let config = AggregationConfig::default();
+
+        assert!(matches!(
+            trimmed_mean(&updates, &config),
+            Err(AggregationError::EmptyUpdates)
+        ));
+
+        assert!(matches!(median(&updates), Err(AggregationError::EmptyUpdates)));
+
+        let weights = vec![];
+        assert!(matches!(
+            weighted_mean(&updates, &weights),
+            Err(AggregationError::EmptyUpdates)
+        ));
+    }
+
+    #[test]
+    fn test_dimension_mismatch() {
+        let updates = vec![
+            vec![1.0, 2.0],      // 2D
+            vec![3.0, 4.0],      // 2D
+            vec![5.0, 6.0],      // 2D
+            vec![7.0, 8.0, 9.0], // 3D - mismatch!
+        ];
+
+        // Need enough updates to pass min_updates check
+        let config = AggregationConfig {
+            trim_percent: 0.1,
+            min_updates: 3,
+        };
+
+        assert!(matches!(
+            trimmed_mean(&updates, &config),
+            Err(AggregationError::DimensionMismatch { .. })
+        ));
+
+        assert!(matches!(
+            median(&updates),
+            Err(AggregationError::DimensionMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn test_invalid_weight() {
+        let updates = vec![vec![1.0], vec![2.0]];
+        let bad_weights = vec![1.0, -1.0]; // Negative weight!
+
+        assert!(matches!(
+            weighted_mean(&updates, &bad_weights),
+            Err(AggregationError::InvalidWeight(_))
+        ));
+
+        let zero_weights = vec![1.0, 0.0]; // Zero weight!
+        assert!(matches!(
+            weighted_mean(&updates, &zero_weights),
+            Err(AggregationError::InvalidWeight(_))
+        ));
+    }
+
+    #[test]
+    fn test_invalid_trim_percent() {
+        let updates = vec![vec![1.0], vec![2.0], vec![3.0]];
+
+        let bad_config = AggregationConfig {
+            trim_percent: -0.1, // Negative!
+            min_updates: 1,
+        };
+        assert!(matches!(
+            trimmed_mean(&updates, &bad_config),
+            Err(AggregationError::InvalidTrimPercent(_))
+        ));
+
+        let bad_config2 = AggregationConfig {
+            trim_percent: 0.6, // > 0.5!
+            min_updates: 1,
+        };
+        assert!(matches!(
+            trimmed_mean(&updates, &bad_config2),
+            Err(AggregationError::InvalidTrimPercent(_))
+        ));
+    }
 }

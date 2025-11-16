@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link, NavLink } from 'react-router-dom';
 import './App.css';
 import './styles/transitions.css';
+import './styles/toast.css';
 
 // Lazy-loaded pages for code splitting
 const CoursesPage = lazy(() => import('./pages/CoursesPage').then(m => ({ default: m.CoursesPage })));
@@ -11,6 +12,7 @@ const CredentialsPage = lazy(() => import('./pages/CredentialsPage').then(m => (
 // Components
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoadingPage } from './components/LoadingSkeleton';
+import { ToastProvider } from './contexts/ToastContext';
 
 // Services
 import { getMockClient } from './services/mockHolochainClient';
@@ -261,83 +263,85 @@ function NavBar() {
 function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
-          {/* Skip Navigation Link */}
-          <a
-            href="#main-content"
-            style={{
-              position: 'absolute',
-              left: '-9999px',
-              zIndex: 999,
-              padding: '8px 16px',
-              backgroundColor: '#3b82f6',
-              color: '#ffffff',
-              textDecoration: 'none',
-              borderRadius: '4px',
-              fontWeight: '600',
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.left = '10px';
-              e.currentTarget.style.top = '10px';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.left = '-9999px';
-            }}
-          >
-            Skip to main content
-          </a>
+      <ToastProvider>
+        <BrowserRouter>
+          <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+            {/* Skip Navigation Link */}
+            <a
+              href="#main-content"
+              style={{
+                position: 'absolute',
+                left: '-9999px',
+                zIndex: 999,
+                padding: '8px 16px',
+                backgroundColor: '#3b82f6',
+                color: '#ffffff',
+                textDecoration: 'none',
+                borderRadius: '4px',
+                fontWeight: '600',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.left = '10px';
+                e.currentTarget.style.top = '10px';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.left = '-9999px';
+              }}
+            >
+              Skip to main content
+            </a>
 
-          <NavBar />
+            <NavBar />
 
-          <main id="main-content" role="main">
-            <Suspense fallback={<LoadingPage message="Loading..." />}>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/courses" element={<CoursesPage />} />
-                <Route path="/rounds" element={<FLRoundsPage />} />
-                <Route path="/credentials" element={<CredentialsPage />} />
-              </Routes>
-            </Suspense>
-          </main>
+            <main id="main-content" role="main">
+              <Suspense fallback={<LoadingPage message="Loading..." />}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/courses" element={<CoursesPage />} />
+                  <Route path="/rounds" element={<FLRoundsPage />} />
+                  <Route path="/credentials" element={<CredentialsPage />} />
+                </Routes>
+              </Suspense>
+            </main>
 
-          <footer
-            role="contentinfo"
-            style={{
-              marginTop: '80px',
-              padding: '24px',
-              borderTop: '1px solid #e5e7eb',
-              textAlign: 'center',
-              color: '#6b7280',
-              fontSize: '14px',
-            }}
-          >
-            <p style={{ margin: '0 0 8px 0' }}>
-              Built with ❤️ by{' '}
-              <a
-                href="https://github.com/Luminous-Dynamics"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Luminous Dynamics GitHub organization"
-                style={{ color: '#3b82f6', textDecoration: 'none' }}
-              >
-                Luminous Dynamics
-              </a>
-            </p>
-            <p style={{ margin: 0 }}>
-              <a
-                href="https://github.com/Luminous-Dynamics/mycelix-edunet"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="View mycelix-edunet repository on GitHub"
-                style={{ color: '#3b82f6', textDecoration: 'none' }}
-              >
-                View on GitHub
-              </a>
-            </p>
-          </footer>
-        </div>
-      </BrowserRouter>
+            <footer
+              role="contentinfo"
+              style={{
+                marginTop: '80px',
+                padding: '24px',
+                borderTop: '1px solid #e5e7eb',
+                textAlign: 'center',
+                color: '#6b7280',
+                fontSize: '14px',
+              }}
+            >
+              <p style={{ margin: '0 0 8px 0' }}>
+                Built with ❤️ by{' '}
+                <a
+                  href="https://github.com/Luminous-Dynamics"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Luminous Dynamics GitHub organization"
+                  style={{ color: '#3b82f6', textDecoration: 'none' }}
+                >
+                  Luminous Dynamics
+                </a>
+              </p>
+              <p style={{ margin: 0 }}>
+                <a
+                  href="https://github.com/Luminous-Dynamics/mycelix-edunet"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="View mycelix-edunet repository on GitHub"
+                  style={{ color: '#3b82f6', textDecoration: 'none' }}
+                >
+                  View on GitHub
+                </a>
+              </p>
+            </footer>
+          </div>
+        </BrowserRouter>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }
