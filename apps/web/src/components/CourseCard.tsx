@@ -2,6 +2,7 @@
  * CourseCard Component
  *
  * Displays a course in a card format with title, description, metadata, and enrollment info
+ * Memoized to prevent unnecessary re-renders when props haven't changed
  */
 
 import React from 'react';
@@ -12,7 +13,7 @@ interface CourseCardProps {
   onClick?: (course: Course) => void;
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
+export const CourseCard = React.memo<CourseCardProps>(({ course, onClick }) => {
   const totalHours = course.syllabus.modules.reduce(
     (sum, m) => sum + m.duration_hours,
     0
@@ -20,6 +21,13 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
 
   const handleClick = () => {
     if (onClick) {
+      onClick(course);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
       onClick(course);
     }
   };
@@ -41,6 +49,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
     <div
       className="course-card"
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={`${course.title} by ${course.instructor}. ${course.difficulty} level. ${totalHours} hours. ${course.enrollment_count} enrolled. Click for details.`}
       style={{
         border: '1px solid #e5e7eb',
         borderRadius: '8px',
@@ -150,4 +162,4 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
       </div>
     </div>
   );
-};
+});

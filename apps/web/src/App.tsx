@@ -121,6 +121,7 @@ function FeatureCard({
   return (
     <Link
       to={link}
+      aria-label={`${title}: ${description}`}
       style={{
         padding: '32px',
         backgroundColor: '#ffffff',
@@ -142,7 +143,7 @@ function FeatureCard({
         e.currentTarget.style.boxShadow = 'none';
       }}
     >
-      <div style={{ fontSize: '48px', marginBottom: '16px' }}>{icon}</div>
+      <div aria-hidden="true" style={{ fontSize: '48px', marginBottom: '16px' }}>{icon}</div>
       <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: '600' }}>{title}</h3>
       <p style={{ margin: 0, fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
         {description}
@@ -179,6 +180,8 @@ function NavBar() {
 
   return (
     <nav
+      role="navigation"
+      aria-label="Main navigation"
       style={{
         backgroundColor: '#ffffff',
         borderBottom: '1px solid #e5e7eb',
@@ -197,6 +200,7 @@ function NavBar() {
         {/* Logo */}
         <Link
           to="/"
+          aria-label="EduNet home"
           style={{
             fontSize: '20px',
             fontWeight: '700',
@@ -221,6 +225,9 @@ function NavBar() {
 
           {/* Connection Status */}
           <div
+            role="status"
+            aria-live="polite"
+            aria-label={`Holochain connection status: ${connected ? 'Connected' : 'Disconnected'}`}
             style={{
               marginLeft: '16px',
               padding: '6px 12px',
@@ -235,6 +242,7 @@ function NavBar() {
             }}
           >
             <span
+              aria-hidden="true"
               style={{
                 width: '6px',
                 height: '6px',
@@ -255,18 +263,46 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+          {/* Skip Navigation Link */}
+          <a
+            href="#main-content"
+            style={{
+              position: 'absolute',
+              left: '-9999px',
+              zIndex: 999,
+              padding: '8px 16px',
+              backgroundColor: '#3b82f6',
+              color: '#ffffff',
+              textDecoration: 'none',
+              borderRadius: '4px',
+              fontWeight: '600',
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.left = '10px';
+              e.currentTarget.style.top = '10px';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.left = '-9999px';
+            }}
+          >
+            Skip to main content
+          </a>
+
           <NavBar />
 
-          <Suspense fallback={<LoadingPage message="Loading..." />}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/courses" element={<CoursesPage />} />
-              <Route path="/rounds" element={<FLRoundsPage />} />
-              <Route path="/credentials" element={<CredentialsPage />} />
-            </Routes>
-          </Suspense>
+          <main id="main-content" role="main">
+            <Suspense fallback={<LoadingPage message="Loading..." />}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/courses" element={<CoursesPage />} />
+                <Route path="/rounds" element={<FLRoundsPage />} />
+                <Route path="/credentials" element={<CredentialsPage />} />
+              </Routes>
+            </Suspense>
+          </main>
 
           <footer
+            role="contentinfo"
             style={{
               marginTop: '80px',
               padding: '24px',
@@ -282,6 +318,7 @@ function App() {
                 href="https://github.com/Luminous-Dynamics"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Luminous Dynamics GitHub organization"
                 style={{ color: '#3b82f6', textDecoration: 'none' }}
               >
                 Luminous Dynamics
@@ -292,6 +329,7 @@ function App() {
                 href="https://github.com/Luminous-Dynamics/mycelix-edunet"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="View mycelix-edunet repository on GitHub"
                 style={{ color: '#3b82f6', textDecoration: 'none' }}
               >
                 View on GitHub

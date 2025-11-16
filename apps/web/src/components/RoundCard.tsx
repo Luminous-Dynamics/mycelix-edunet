@@ -2,6 +2,7 @@
  * RoundCard Component
  *
  * Displays an FL round in a card format with state, participants, and metadata
+ * Memoized to prevent unnecessary re-renders when props haven't changed
  */
 
 import React from 'react';
@@ -13,9 +14,16 @@ interface RoundCardProps {
   onClick?: (round: FlRound) => void;
 }
 
-export const RoundCard: React.FC<RoundCardProps> = ({ round, onClick }) => {
+export const RoundCard = React.memo<RoundCardProps>(({ round, onClick }) => {
   const handleClick = () => {
     if (onClick) {
+      onClick(round);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
       onClick(round);
     }
   };
@@ -50,6 +58,10 @@ export const RoundCard: React.FC<RoundCardProps> = ({ round, onClick }) => {
     <div
       className="round-card"
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={`FL Round ${round.round_id}. State: ${round.state}. ${round.current_participants} of ${round.max_participants} participants. Aggregation: ${round.aggregation_method}. Click for details.`}
       style={{
         border: '1px solid #e5e7eb',
         borderRadius: '8px',
@@ -221,4 +233,4 @@ export const RoundCard: React.FC<RoundCardProps> = ({ round, onClick }) => {
       </div>
     </div>
   );
-};
+});

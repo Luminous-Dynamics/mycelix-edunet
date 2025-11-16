@@ -1,12 +1,53 @@
-//! Aggregation methods for federated learning
+//! Aggregation methods for federated learning.
+//!
+//! Provides Byzantine-robust aggregation primitives for federated learning.
 
 use crate::{AggregationConfig, AggregationError, Result};
 
-/// Compute trimmed mean of vectors
+/// Compute trimmed mean of vectors.
 ///
 /// Trims the top and bottom `trim_percent` of values for each dimension,
 /// then computes the mean. This provides robustness against outliers and
 /// poisoning attacks.
+///
+/// # Arguments
+///
+/// * `updates` - Model updates from participants (each vector has same dimension)
+/// * `config` - Aggregation configuration controlling trim percentage and minimums
+///
+/// # Returns
+///
+/// Aggregated model update with same dimension as inputs.
+///
+/// # Errors
+///
+/// - `EmptyUpdates`: No updates provided
+/// - `InsufficientUpdates`: Fewer than `min_updates` provided
+/// - `DimensionMismatch`: Updates have different dimensions
+/// - `InvalidTrimPercent`: Trim percent outside [0.0, 0.5]
+///
+/// # Examples
+///
+/// ```
+/// use edunet_agg::{trimmed_mean, AggregationConfig};
+///
+/// let updates = vec![
+///     vec![1.0, 2.0],
+///     vec![2.0, 3.0],
+///     vec![3.0, 4.0],
+///     vec![100.0, 200.0], // Outlier from malicious participant
+/// ];
+///
+/// let config = AggregationConfig {
+///     trim_percent: 0.25,
+///     min_updates: 3,
+/// };
+///
+/// let result = trimmed_mean(&updates, &config).unwrap();
+/// // Outlier is trimmed, result is mean of [1,2,3] = 2.0 and [2,3,4] = 3.0
+/// assert!((result[0] - 2.5).abs() < 0.1);
+/// assert!((result[1] - 3.5).abs() < 0.1);
+/// ```
 pub fn trimmed_mean(
     updates: &[Vec<f32>],
     config: &AggregationConfig,
@@ -58,10 +99,46 @@ pub fn trimmed_mean(
     Ok(result)
 }
 
-/// Compute median of vectors
+/// Compute median of vectors.
 ///
 /// For each dimension, computes the median value across all updates.
 /// Provides maximum robustness against outliers (50% breakdown point).
+///
+/// # Arguments
+///
+/// * `updates` - Model updates from participants
+///
+/// # Returns
+///
+/// Aggregated model update with median values per dimension.
+///
+/// # Errors
+///
+/// - `EmptyUpdates`: No updates provided
+/// - `DimensionMismatch`: Updates have different dimensions
+///
+/// # Examples
+///
+/// ```
+/// use edunet_agg::median;
+///
+/// let updates = vec![
+///     vec![1.0, 2.0],
+///     vec![2.0, 3.0],
+///     vec![3.0, 4.0],
+///     vec![100.0, 200.0], // Extreme outlier - median is still robust!
+/// ];
+///
+/// let result = median(&updates).unwrap();
+/// // Median = (2nd + 3rd values) / 2
+/// assert_eq!(result[0], 2.5);
+/// assert_eq!(result[1], 3.5);
+/// ```
+///
+/// # Note
+///
+/// Median provides the strongest robustness but is less statistically efficient
+/// than trimmed mean when most participants are honest.
 pub fn median(updates: &[Vec<f32>]) -> Result<Vec<f32>> {
     if updates.is_empty() {
         return Err(AggregationError::EmptyUpdates);
@@ -101,12 +178,49 @@ pub fn median(updates: &[Vec<f32>]) -> Result<Vec<f32>> {
     Ok(result)
 }
 
-/// Compute weighted mean of vectors
+/// Compute weighted mean of vectors.
 ///
-/// Weights could be based on:
-/// - Number of training samples
-/// - Validation loss
-/// - Stake/reputation
+/// Combines updates with participant-specific weights, useful for incorporating
+/// heterogeneity in data sizes or participant reputation.
+///
+/// # Arguments
+///
+/// * `updates` - Model updates from participants
+/// * `weights` - Positive weights for each update (e.g., sample counts, reputation scores)
+///
+/// # Returns
+///
+/// Weighted average of updates, normalized by total weight.
+///
+/// # Errors
+///
+/// - `EmptyUpdates`: No updates provided
+/// - `DimensionMismatch`: Updates and weights have different lengths, or updates have different dimensions
+/// - `InvalidWeight`: Non-positive weight encountered
+///
+/// # Examples
+///
+/// ```
+/// use edunet_agg::weighted_mean;
+///
+/// let updates = vec![
+///     vec![1.0, 2.0], // Participant with 100 samples
+///     vec![3.0, 4.0], // Participant with 300 samples
+/// ];
+///
+/// let weights = vec![100.0, 300.0]; // Sample counts
+///
+/// let result = weighted_mean(&updates, &weights).unwrap();
+/// // Result weighted toward second participant: (1*100 + 3*300)/400 = 2.5
+/// assert_eq!(result[0], 2.5);
+/// assert_eq!(result[1], 3.5);
+/// ```
+///
+/// # Use Cases
+///
+/// - **Data heterogeneity**: Weight by number of training samples
+/// - **Reputation systems**: Weight by participant stake or track record
+/// - **Validation-based**: Weight by inverse validation loss
 pub fn weighted_mean(
     updates: &[Vec<f32>],
     weights: &[f64],
@@ -153,10 +267,43 @@ pub fn weighted_mean(
     Ok(result)
 }
 
-/// Clip L2 norm of a vector to a maximum value
+/// Clip L2 norm of a vector to a maximum value.
 ///
-/// If ||v|| > max_norm, scales v to have norm exactly max_norm.
-/// This is a key privacy protection mechanism.
+/// If ||v||₂ > max_norm, scales v to have norm exactly max_norm.
+/// This is a key privacy protection mechanism used in differential privacy.
+///
+/// # Arguments
+///
+/// * `vector` - Model update vector to clip (modified in-place)
+/// * `max_norm` - Maximum allowed L2 norm
+///
+/// # Examples
+///
+/// ```
+/// use edunet_agg::clip_l2_norm;
+///
+/// let mut update = vec![3.0, 4.0]; // L2 norm = sqrt(9 + 16) = 5.0
+/// clip_l2_norm(&mut update, 1.0);
+///
+/// // Vector is scaled to norm 1.0: [3/5, 4/5] = [0.6, 0.8]
+/// assert!((update[0] - 0.6).abs() < 0.01);
+/// assert!((update[1] - 0.8).abs() < 0.01);
+///
+/// // Verify L2 norm
+/// let norm: f32 = update.iter().map(|x| x * x).sum::<f32>().sqrt();
+/// assert!((norm - 1.0).abs() < 0.001);
+/// ```
+///
+/// # Privacy Properties
+///
+/// Gradient clipping bounds the sensitivity of the aggregation function,
+/// which is necessary for differential privacy guarantees. The privacy
+/// parameter ε scales with `max_norm`.
+///
+/// # Performance
+///
+/// - Time: O(d) where d is vector dimension
+/// - Space: O(1) (in-place modification)
 pub fn clip_l2_norm(vector: &mut [f32], max_norm: f32) {
     let norm: f32 = vector.iter().map(|x| x * x).sum::<f32>().sqrt();
 

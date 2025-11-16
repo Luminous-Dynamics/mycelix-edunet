@@ -4,7 +4,7 @@
  * Main page for course discovery with search, filters, and grid of course cards
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { CourseCard } from '../components/CourseCard';
 import { CourseFilters, FilterState } from '../components/CourseFilters';
 import { LoadingCard } from '../components/LoadingSkeleton';
@@ -106,15 +106,15 @@ export const CoursesPage: React.FC = () => {
     }
 
     return result;
-  }, [filters]);
+  }, [courses, filters]);
 
-  const handleCourseClick = (course: Course) => {
+  const handleCourseClick = useCallback((course: Course) => {
     setSelectedCourse(course);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setSelectedCourse(null);
-  };
+  }, []);
 
   // Show loading state
   if (loading) {

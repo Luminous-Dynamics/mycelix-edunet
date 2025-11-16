@@ -4,7 +4,7 @@
  * Main page for viewing and participating in Federated Learning rounds
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { RoundCard } from '../components/RoundCard';
 import { RoundTimeline } from '../components/RoundTimeline';
 import { LoadingCard } from '../components/LoadingSkeleton';
@@ -58,22 +58,27 @@ export const FLRoundsPage: React.FC = () => {
     }
   }, [selectedTab, rounds]);
 
-  const activeCount = rounds.filter((r) =>
-    ['JOIN', 'ASSIGN', 'UPDATE', 'AGGREGATE'].includes(r.state)
-  ).length;
-  const completedCount = rounds.filter((r) => r.state === 'COMPLETED').length;
+  const activeCount = useMemo(
+    () => rounds.filter((r) => ['JOIN', 'ASSIGN', 'UPDATE', 'AGGREGATE'].includes(r.state)).length,
+    [rounds]
+  );
 
-  const handleRoundClick = (round: FlRound) => {
+  const completedCount = useMemo(
+    () => rounds.filter((r) => r.state === 'COMPLETED').length,
+    [rounds]
+  );
+
+  const handleRoundClick = useCallback((round: FlRound) => {
     setSelectedRound(round);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setSelectedRound(null);
-  };
+  }, []);
 
-  const handleJoinRound = (round: FlRound) => {
+  const handleJoinRound = useCallback((round: FlRound) => {
     alert(`Joining round: ${round.round_id}\n\nThis will be implemented with real Holochain integration.`);
-  };
+  }, []);
 
   const TabButton: React.FC<{ tab: FilterTab; label: string; count?: number }> = ({
     tab,

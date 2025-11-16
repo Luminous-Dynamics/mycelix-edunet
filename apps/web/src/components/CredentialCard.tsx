@@ -2,6 +2,7 @@
  * CredentialCard Component
  *
  * Displays a W3C Verifiable Credential in a card format
+ * Memoized to prevent unnecessary re-renders when props haven't changed
  */
 
 import React from 'react';
@@ -13,9 +14,16 @@ interface CredentialCardProps {
   onClick?: (credential: VerifiableCredential) => void;
 }
 
-export const CredentialCard: React.FC<CredentialCardProps> = ({ credential, onClick }) => {
+export const CredentialCard = React.memo<CredentialCardProps>(({ credential, onClick }) => {
   const handleClick = () => {
     if (onClick) {
+      onClick(credential);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
       onClick(credential);
     }
   };
@@ -24,10 +32,18 @@ export const CredentialCard: React.FC<CredentialCardProps> = ({ credential, onCl
   const icon = getCredentialTypeIcon(credential.type);
   const scoreBandColor = getScoreBandColor(credential.credentialSubject.scoreBand);
 
+  const credentialType = credential.type[credential.type.length - 1]
+    .replace('Edu', '')
+    .replace('Credential', '');
+
   return (
     <div
       className="credential-card"
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={`${credentialType} credential for ${credential.credentialSubject.courseId}. ${isAchievement ? `Score: ${credential.credentialSubject.score.toFixed(1)}. ` : ''}${credential.proof ? 'Verified. ' : ''}Click for details.`}
       style={{
         border: '2px solid #e5e7eb',
         borderRadius: '12px',
@@ -204,4 +220,4 @@ export const CredentialCard: React.FC<CredentialCardProps> = ({ credential, onCl
       )}
     </div>
   );
-};
+});

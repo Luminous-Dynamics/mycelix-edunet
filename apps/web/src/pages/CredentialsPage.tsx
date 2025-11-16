@@ -4,7 +4,7 @@
  * Display user's verifiable credentials with verification and sharing options
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { CredentialCard } from '../components/CredentialCard';
 import { LoadingCard } from '../components/LoadingSkeleton';
 import { ErrorState } from '../components/ErrorState';
@@ -46,33 +46,44 @@ export const CredentialsPage: React.FC = () => {
     fetchCredentials();
   }, []);
 
-  const handleCredentialClick = (credential: VerifiableCredential) => {
+  // Memoized stats
+  const verifiedCount = useMemo(
+    () => credentials.filter((c) => c.proof).length,
+    [credentials]
+  );
+
+  const totalFlContributions = useMemo(
+    () => credentials.reduce((sum, c) => sum + (c.credentialSubject.flContributions || 0), 0),
+    [credentials]
+  );
+
+  const handleCredentialClick = useCallback((credential: VerifiableCredential) => {
     setSelectedCredential(credential);
     setVerificationResult(null);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setSelectedCredential(null);
     setVerificationResult(null);
-  };
+  }, []);
 
-  const handleVerify = () => {
+  const handleVerify = useCallback(() => {
     if (selectedCredential) {
       const result = verifyCredential(selectedCredential);
       setVerificationResult(result);
     }
-  };
+  }, [selectedCredential]);
 
-  const handleShare = () => {
+  const handleShare = useCallback(() => {
     if (selectedCredential) {
       const jsonString = JSON.stringify(selectedCredential, null, 2);
       navigator.clipboard.writeText(jsonString).then(() => {
         alert('Credential JSON copied to clipboard!');
       });
     }
-  };
+  }, [selectedCredential]);
 
-  const handleDownload = () => {
+  const handleDownload = useCallback(() => {
     if (selectedCredential) {
       const jsonString = JSON.stringify(selectedCredential, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
@@ -85,7 +96,7 @@ export const CredentialsPage: React.FC = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
-  };
+  }, [selectedCredential]);
 
   // Show loading state
   if (loading) {
@@ -186,7 +197,7 @@ export const CredentialsPage: React.FC = () => {
             Verified
           </div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: '#065f46' }}>
-            {credentials.filter((c) => c.proof).length}
+            {verifiedCount}
           </div>
         </div>
 
@@ -202,10 +213,7 @@ export const CredentialsPage: React.FC = () => {
             FL Contributions
           </div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: '#78350f' }}>
-            {credentials.reduce(
-              (sum, c) => sum + (c.credentialSubject.flContributions || 0),
-              0
-            )}
+            {totalFlContributions}
           </div>
         </div>
       </div>
