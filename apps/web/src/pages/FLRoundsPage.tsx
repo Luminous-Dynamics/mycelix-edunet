@@ -9,11 +9,22 @@ import { RoundCard } from '../components/RoundCard';
 import { RoundTimeline } from '../components/RoundTimeline';
 import { LoadingCard } from '../components/LoadingSkeleton';
 import { ErrorState } from '../components/ErrorState';
+import { EmptyState } from '../components/EmptyState';
+import { useToast } from '../contexts/ToastContext';
 import { mockFlRounds, FlRound } from '../data/mockRounds';
+import {
+  ANIMATION_TIMING,
+  ERROR_SIMULATION,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  INFO_MESSAGES,
+  FL_ROUND_STATES,
+} from '../config/constants';
 
 type FilterTab = 'all' | 'active' | 'completed';
 
 export const FLRoundsPage: React.FC = () => {
+  const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState<FilterTab>('all');
   const [selectedRound, setSelectedRound] = useState<FlRound | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,57 +39,61 @@ export const FLRoundsPage: React.FC = () => {
 
       try {
         // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 600));
+        await new Promise(resolve => setTimeout(resolve, ANIMATION_TIMING.LOADING_DELAY.FL_ROUNDS));
 
-        // Simulate occasional error (5% chance)
-        if (Math.random() < 0.05) {
-          throw new Error('Failed to load FL rounds');
+        // Simulate occasional error
+        if (Math.random() < ERROR_SIMULATION.FL_ROUNDS_ERROR_RATE) {
+          throw new Error(ERROR_MESSAGES.FL_ROUNDS_LOAD_FAILED);
         }
 
         setRounds(mockFlRounds);
+        toast.success(SUCCESS_MESSAGES.FL_ROUNDS_LOADED(mockFlRounds.length));
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        const errorMessage = err instanceof Error ? err.message : ERROR_MESSAGES.GENERIC;
+        setError(errorMessage);
+        toast.error(ERROR_MESSAGES.FL_ROUNDS_LOAD_FAILED);
       } finally {
         setLoading(false);
       }
     };
 
     fetchRounds();
-  }, []);
+  }, [toast]);
 
   const filteredRounds = useMemo(() => {
-    const activeStates = ['JOIN', 'ASSIGN', 'UPDATE', 'AGGREGATE'];
     switch (selectedTab) {
       case 'active':
-        return rounds.filter((r) => activeStates.includes(r.state));
+        return rounds.filter((r) => FL_ROUND_STATES.ACTIVE.includes(r.state as any));
       case 'completed':
-        return rounds.filter((r) => r.state === 'COMPLETED');
+        return rounds.filter((r) => r.state === FL_ROUND_STATES.COMPLETED);
       default:
         return rounds;
     }
   }, [selectedTab, rounds]);
 
   const activeCount = useMemo(
-    () => rounds.filter((r) => ['JOIN', 'ASSIGN', 'UPDATE', 'AGGREGATE'].includes(r.state)).length,
+    () => rounds.filter((r) => FL_ROUND_STATES.ACTIVE.includes(r.state as any)).length,
     [rounds]
   );
 
   const completedCount = useMemo(
-    () => rounds.filter((r) => r.state === 'COMPLETED').length,
+    () => rounds.filter((r) => r.state === FL_ROUND_STATES.COMPLETED).length,
     [rounds]
   );
 
   const handleRoundClick = useCallback((round: FlRound) => {
     setSelectedRound(round);
-  }, []);
+    toast.info(INFO_MESSAGES.VIEWING_ROUND(round.round_id));
+  }, [toast]);
 
   const handleCloseModal = useCallback(() => {
     setSelectedRound(null);
   }, []);
 
   const handleJoinRound = useCallback((round: FlRound) => {
-    alert(`Joining round: ${round.round_id}\n\nThis will be implemented with real Holochain integration.`);
-  }, []);
+    toast.success(SUCCESS_MESSAGES.ROUND_JOINED(round.round_id));
+    toast.info(INFO_MESSAGES.HOLOCHAIN_COMING_SOON);
+  }, [toast]);
 
   const TabButton: React.FC<{ tab: FilterTab; label: string; count?: number }> = ({
     tab,
@@ -220,18 +235,45 @@ export const FLRoundsPage: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div
-          style={{
-            padding: '64px 24px',
-            textAlign: 'center',
-            backgroundColor: '#f9fafb',
-            borderRadius: '8px',
+        <EmptyState
+          icon={selectedTab === 'active' ? '⏸️' : selectedTab === 'completed' ? '✅' : '📭'}
+          title={
+            selectedTab === 'active'
+              ? 'No Active Rounds'
+              : selectedTab === 'completed'
+              ? 'No Completed Rounds'
+              : 'No Rounds Available'
+          }
+          description={
+            selectedTab === 'active'
+              ? 'There are currently no active FL rounds accepting participants. Check back soon or view all rounds.'
+              : selectedTab === 'completed'
+              ? 'No rounds have been completed yet. Join an active round to start contributing!'
+              : 'No federated learning rounds are available at this time. New rounds will appear here when created.'
+          }
+          action={{
+            label: selectedTab === 'all' ? 'Refresh' : 'View All Rounds',
+            onClick: () => {
+              if (selectedTab === 'all') {
+                window.location.reload();
+              } else {
+                setSelectedTab('all');
+                toast.info(INFO_MESSAGES.SHOWING_ALL_ROUNDS);
+              }
+            },
           }}
-        >
-          <p style={{ margin: 0, fontSize: '16px', color: '#6b7280' }}>
-            No {selectedTab} rounds found
-          </p>
-        </div>
+          secondaryAction={
+            selectedTab !== 'active'
+              ? {
+                  label: 'View Active Rounds',
+                  onClick: () => {
+                    setSelectedTab('active');
+                    toast.info(INFO_MESSAGES.SHOWING_ACTIVE_ROUNDS);
+                  },
+                }
+              : undefined
+          }
+        />
       )}
 
       {/* Round Detail Modal */}

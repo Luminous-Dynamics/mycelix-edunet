@@ -356,6 +356,200 @@ When contributing, consider:
 - **Threat model impact**: Note in PR if your change affects threat surface
 - **Dependencies**: Audit new dependencies
 
+## Configuration and Constants
+
+### Application Configuration
+
+All application constants live in `apps/web/src/config/constants.ts`. **Never hardcode** magic numbers, strings, or URLs in components.
+
+#### Adding a New Constant
+
+```typescript
+// apps/web/src/config/constants.ts
+
+export const MY_FEATURE_CONFIG = {
+  MAX_ITEMS: 100,
+  DEFAULT_TIMEOUT: 5000, // 5 seconds
+  API_ENDPOINT: import.meta.env.VITE_MY_API_URL || '/api/my-feature',
+} as const;
+
+export const MY_FEATURE_MESSAGES = {
+  SUCCESS: 'Operation completed successfully!',
+  ERROR: 'An error occurred. Please try again.',
+} as const;
+```
+
+#### Using Constants in Components
+
+```typescript
+import { MY_FEATURE_CONFIG, MY_FEATURE_MESSAGES } from '../config/constants';
+
+const handleAction = () => {
+  if (items.length > MY_FEATURE_CONFIG.MAX_ITEMS) {
+    toast.error(MY_FEATURE_MESSAGES.ERROR);
+  }
+};
+```
+
+#### Environment Variables
+
+1. Copy `.env.example` to `.env`:
+
+```bash
+cd apps/web
+cp .env.example .env
+```
+
+2. Edit `.env` with your configuration:
+
+```bash
+VITE_API_URL=http://localhost:3000
+VITE_ENABLE_MOCK_DATA=true
+```
+
+3. Access in code via `import.meta.env`:
+
+```typescript
+const apiUrl = import.meta.env.VITE_API_URL;
+```
+
+**Important**: Never commit `.env` files! They're gitignored.
+
+## Troubleshooting
+
+### Web App Issues
+
+#### App won't start
+
+```bash
+cd apps/web
+
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json dist
+npm install
+npm run dev
+```
+
+#### Build fails with TypeScript errors
+
+```bash
+# Check TypeScript errors
+npm run build
+
+# Or run type check only
+npx tsc --noEmit
+```
+
+#### Environment variables not loading
+
+- Ensure `.env` file exists (copy from `.env.example`)
+- Restart dev server after changing `.env`
+- Environment variables must start with `VITE_`
+
+### Rust Issues
+
+#### Cargo build fails
+
+```bash
+# Update Rust toolchain
+rustup update stable
+
+# Clean and rebuild
+cargo clean
+make build
+```
+
+#### Tests failing after rebase
+
+```bash
+# Update dependencies
+cargo update
+
+# Run specific failing test
+cargo test test_name -- --nocapture --test-threads=1
+```
+
+#### Clippy warnings
+
+```bash
+# Auto-fix some issues
+cargo clippy --fix --allow-dirty
+
+# Or manually fix based on warnings
+cargo clippy --all -- -D warnings
+```
+
+### Git Issues
+
+#### Merge conflicts during rebase
+
+```bash
+# Option 1: Resolve manually
+git status  # See conflicted files
+# Edit files to resolve conflicts
+git add .
+git rebase --continue
+
+# Option 2: Abort and try again
+git rebase --abort
+```
+
+#### Accidentally committed to wrong branch
+
+```bash
+# Stash changes
+git stash
+
+# Switch to correct branch
+git checkout correct-branch
+
+# Apply stashed changes
+git stash pop
+```
+
+## npm Scripts Reference
+
+### Web App (`apps/web/`)
+
+```bash
+# Development
+npm run dev              # Start dev server (http://localhost:5173)
+npm run build            # Build for production
+npm run preview          # Preview production build
+
+# Code Quality
+npm run lint             # Run ESLint
+npm run format           # Format with Prettier
+npm run type-check       # TypeScript type checking
+
+# Testing
+npm test                 # Run tests
+npm test -- --watch      # Run tests in watch mode
+npm test -- --coverage   # Run tests with coverage
+```
+
+### Makefile Commands (Root)
+
+```bash
+# Development
+make dev                 # Start development environment
+make build               # Build all components
+make clean               # Remove build artifacts
+
+# Testing
+make test                # Run all tests (Rust + Web)
+make test-rust           # Rust tests only
+make test-web            # Web tests only
+
+# Code Quality
+make fmt                 # Format all code
+make lint                # Run all linters
+make check               # Quick check (fmt + lint + test)
+
+# Holochain
+make reset               # Reset Holochain state (dev only)
+```
+
 ## Questions?
 
 - **General questions**: Open a [Discussion](https://github.com/Luminous-Dynamics/mycelix-edunet/discussions)

@@ -8,9 +8,20 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { CredentialCard } from '../components/CredentialCard';
 import { LoadingCard } from '../components/LoadingSkeleton';
 import { ErrorState } from '../components/ErrorState';
+import { EmptyState } from '../components/EmptyState';
+import { useToast } from '../contexts/ToastContext';
 import { mockCredentials, VerifiableCredential, verifyCredential } from '../data/mockCredentials';
+import {
+  ANIMATION_TIMING,
+  ERROR_SIMULATION,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  INFO_MESSAGES,
+  ROUTES,
+} from '../config/constants';
 
 export const CredentialsPage: React.FC = () => {
+  const { toast } = useToast();
   const [selectedCredential, setSelectedCredential] = useState<VerifiableCredential | null>(null);
   const [verificationResult, setVerificationResult] = useState<{
     valid: boolean;
@@ -28,23 +39,26 @@ export const CredentialsPage: React.FC = () => {
 
       try {
         // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, ANIMATION_TIMING.LOADING_DELAY.CREDENTIALS));
 
-        // Simulate occasional error (5% chance)
-        if (Math.random() < 0.05) {
-          throw new Error('Failed to load credentials');
+        // Simulate occasional error
+        if (Math.random() < ERROR_SIMULATION.CREDENTIALS_ERROR_RATE) {
+          throw new Error(ERROR_MESSAGES.CREDENTIALS_LOAD_FAILED);
         }
 
         setCredentials(mockCredentials);
+        toast.success(SUCCESS_MESSAGES.CREDENTIALS_LOADED(mockCredentials.length));
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        const errorMessage = err instanceof Error ? err.message : ERROR_MESSAGES.GENERIC;
+        setError(errorMessage);
+        toast.error(ERROR_MESSAGES.CREDENTIALS_LOAD_FAILED);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCredentials();
-  }, []);
+  }, [toast]);
 
   // Memoized stats
   const verifiedCount = useMemo(
@@ -60,7 +74,8 @@ export const CredentialsPage: React.FC = () => {
   const handleCredentialClick = useCallback((credential: VerifiableCredential) => {
     setSelectedCredential(credential);
     setVerificationResult(null);
-  }, []);
+    toast.info(INFO_MESSAGES.VIEWING_CREDENTIAL);
+  }, [toast]);
 
   const handleCloseModal = useCallback(() => {
     setSelectedCredential(null);
@@ -71,17 +86,24 @@ export const CredentialsPage: React.FC = () => {
     if (selectedCredential) {
       const result = verifyCredential(selectedCredential);
       setVerificationResult(result);
+      if (result.valid) {
+        toast.success(SUCCESS_MESSAGES.CREDENTIAL_VERIFIED);
+      } else {
+        toast.error(`${ERROR_MESSAGES.CREDENTIAL_VERIFY_FAILED}: ${result.reason || 'Invalid credential'}`);
+      }
     }
-  }, [selectedCredential]);
+  }, [selectedCredential, toast]);
 
   const handleShare = useCallback(() => {
     if (selectedCredential) {
       const jsonString = JSON.stringify(selectedCredential, null, 2);
       navigator.clipboard.writeText(jsonString).then(() => {
-        alert('Credential JSON copied to clipboard!');
+        toast.success(SUCCESS_MESSAGES.CREDENTIAL_COPIED);
+      }).catch(() => {
+        toast.error(ERROR_MESSAGES.CREDENTIAL_COPY_FAILED);
       });
     }
-  }, [selectedCredential]);
+  }, [selectedCredential, toast]);
 
   const handleDownload = useCallback(() => {
     if (selectedCredential) {
@@ -95,8 +117,9 @@ export const CredentialsPage: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      toast.success(SUCCESS_MESSAGES.CREDENTIAL_DOWNLOADED);
     }
-  }, [selectedCredential]);
+  }, [selectedCredential, toast]);
 
   // Show loading state
   if (loading) {
@@ -236,21 +259,23 @@ export const CredentialsPage: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div
-          style={{
-            padding: '64px 24px',
-            textAlign: 'center',
-            backgroundColor: '#f9fafb',
-            borderRadius: '8px',
+        <EmptyState
+          icon="🎓"
+          title="No Credentials Yet"
+          description="You haven't earned any credentials yet. Complete courses and participate in federated learning rounds to earn verifiable credentials that showcase your achievements and contributions."
+          action={{
+            label: 'Browse Courses',
+            onClick: () => {
+              window.location.href = ROUTES.COURSES;
+            },
           }}
-        >
-          <p style={{ margin: 0, fontSize: '16px', color: '#6b7280' }}>
-            No credentials yet
-          </p>
-          <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#9ca3af' }}>
-            Complete courses to earn verifiable credentials
-          </p>
-        </div>
+          secondaryAction={{
+            label: 'View FL Rounds',
+            onClick: () => {
+              window.location.href = ROUTES.FL_ROUNDS;
+            },
+          }}
+        />
       )}
 
       {/* Credential Detail Modal */}

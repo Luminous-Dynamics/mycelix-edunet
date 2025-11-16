@@ -9,9 +9,19 @@ import { CourseCard } from '../components/CourseCard';
 import { CourseFilters, FilterState } from '../components/CourseFilters';
 import { LoadingCard } from '../components/LoadingSkeleton';
 import { ErrorState } from '../components/ErrorState';
+import { EmptyState } from '../components/EmptyState';
+import { useToast } from '../contexts/ToastContext';
 import { mockCourses, Course } from '../data/mockCourses';
+import {
+  ANIMATION_TIMING,
+  ERROR_SIMULATION,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  INFO_MESSAGES,
+} from '../config/constants';
 
 export const CoursesPage: React.FC = () => {
+  const { toast } = useToast();
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '',
     difficulty: 'all',
@@ -32,23 +42,26 @@ export const CoursesPage: React.FC = () => {
 
       try {
         // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, ANIMATION_TIMING.LOADING_DELAY.COURSES));
 
-        // Simulate occasional error (10% chance)
-        if (Math.random() < 0.05) {
-          throw new Error('Failed to load courses');
+        // Simulate occasional error
+        if (Math.random() < ERROR_SIMULATION.COURSES_ERROR_RATE) {
+          throw new Error(ERROR_MESSAGES.COURSES_LOAD_FAILED);
         }
 
         setCourses(mockCourses);
+        toast.success(SUCCESS_MESSAGES.COURSES_LOADED(mockCourses.length));
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        const errorMessage = err instanceof Error ? err.message : ERROR_MESSAGES.GENERIC;
+        setError(errorMessage);
+        toast.error(ERROR_MESSAGES.COURSES_LOAD_FAILED);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCourses();
-  }, []);
+  }, [toast]);
 
   // Extract all unique tags from courses
   const allTags = useMemo(() => {
@@ -110,11 +123,22 @@ export const CoursesPage: React.FC = () => {
 
   const handleCourseClick = useCallback((course: Course) => {
     setSelectedCourse(course);
-  }, []);
+    toast.info(INFO_MESSAGES.VIEWING_COURSE(course.title));
+  }, [toast]);
 
   const handleCloseModal = useCallback(() => {
     setSelectedCourse(null);
   }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({
+      searchQuery: '',
+      difficulty: 'all',
+      tags: [],
+      sortBy: 'popular',
+    });
+    toast.info(SUCCESS_MESSAGES.FILTERS_CLEARED);
+  }, [toast]);
 
   // Show loading state
   if (loading) {
@@ -206,21 +230,22 @@ export const CoursesPage: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div
-          style={{
-            padding: '64px 24px',
-            textAlign: 'center',
-            backgroundColor: '#f9fafb',
-            borderRadius: '8px',
+        <EmptyState
+          icon="🔍"
+          title="No courses found"
+          description="We couldn't find any courses matching your filters. Try adjusting your search criteria or browse all available courses."
+          action={{
+            label: "Clear Filters",
+            onClick: handleClearFilters
           }}
-        >
-          <p style={{ margin: 0, fontSize: '16px', color: '#6b7280' }}>
-            No courses found matching your criteria
-          </p>
-          <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#9ca3af' }}>
-            Try adjusting your filters
-          </p>
-        </div>
+          secondaryAction={{
+            label: "View All Courses",
+            onClick: () => {
+              handleClearFilters();
+              toast.info(INFO_MESSAGES.SHOWING_ALL_COURSES);
+            }
+          }}
+        />
       )}
 
       {/* Course Detail Modal */}
@@ -332,7 +357,7 @@ export const CoursesPage: React.FC = () => {
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = '#3b82f6';
               }}
-              onClick={() => alert('Enrollment coming soon!')}
+              onClick={() => alert(INFO_MESSAGES.ENROLLMENT_COMING_SOON)}
             >
               Enroll Now
             </button>
