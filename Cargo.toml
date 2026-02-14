@@ -40,7 +40,7 @@ anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 
 # Statistics (for aggregation)
-statrs = "0.17"
+statrs = "0.18"
 
 # Random generation (for tests)
 rand = "0.8"
